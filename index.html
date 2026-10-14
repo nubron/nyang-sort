@@ -3,76 +3,218 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>냥소트 프로토타입</title>
+<meta name="theme-color" content="#F7E8CF">
+<title>냥소트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap">
 <style>
 :root{
-  --bg:#f5f1ea; --surface:#ffffff; --ink:#2a2622; --muted:#7a7066; --line:#ddd4c8;
-  --accent:#d9772b; --accent-soft:#fbe9d8; --good:#2f8f5b; --good-soft:#dcf2e5;
-  --warn:#a85a00; --warn-soft:#fdeed6; --hint:#2f6fd6;
+  --ink:#4A3420; --muted:#8C6E52; --cream:#FFF6E8; --paper:#FFF8EC; --accent:#E2683C; --accent-d:#B84B24;
+  --btn-shadow:#D3B48A; --line:#E0CDB1; color-scheme:light;
 }
 *{box-sizing:border-box}
-html,body{margin:0;height:100%}
-body{background:var(--bg);color:var(--ink);font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;
-  font-size:15px;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
-.app{max-width:520px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;gap:10px;padding:12px 16px 16px}
-header{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
-h1{font-size:22px;margin:0}
-.stats{display:flex;gap:8px}
-.stat{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 8px;text-align:center}
-.stat .k{font-size:11px;color:var(--muted)}
-.stat .v{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
-.notice{min-height:40px;border-radius:10px;padding:8px 12px;font-size:14px;display:flex;align-items:center;justify-content:center;text-align:center}
-.notice.info{background:var(--surface);color:var(--muted);border:1px dashed var(--line)}
-.notice.warn{background:var(--warn-soft);color:var(--warn);font-weight:700}
-.notice.good{background:var(--good-soft);color:var(--good);font-weight:700}
-.notice.hint{background:#e3ecfb;color:var(--hint);font-weight:700}
-.board{flex:1;display:grid;gap:14px 6px;align-content:center;padding:18px 0 4px}
-.tube{position:relative;display:flex;flex-direction:column-reverse;justify-content:flex-start;gap:3px;
-  padding:4px 3px 5px;border:3px solid #9b8f82;border-top:none;border-radius:0 0 12px 12px;
-  background:rgba(255,255,255,.55);height:calc(4 * 33px + 3 * 3px + 12px);cursor:pointer;transition:transform .12s}
-.tube.sel{border-color:var(--accent);background:var(--accent-soft)}
-.tube.done{border-color:var(--good);background:var(--good-soft)}
-.tube.hint-from{outline:3px dashed var(--hint);outline-offset:3px}
-.tube.hint-to{outline:3px solid var(--hint);outline-offset:3px}
-.tube.bad{animation:shake .25s}
-@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-.zzz{position:absolute;top:-20px;left:0;right:0;text-align:center;font-size:13px;font-weight:700;color:var(--good);letter-spacing:1px}
-.cat{position:relative;height:33px;flex:none;border-radius:14px 14px 7px 7px;display:grid;place-items:center;
-  border:1.5px solid rgba(0,0,0,.25);transition:transform .12s}
-.cat::before,.cat::after{content:"";position:absolute;top:-7px;width:0;height:0;
-  border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:9px solid var(--ear)}
-.cat::before{left:4px} .cat::after{right:4px}
-.cat span{font-size:11px;font-weight:700;line-height:1;padding:2px 3px;border-radius:4px;background:rgba(255,255,255,.88);color:#1f1b18;white-space:nowrap}
-.cat.up{transform:translateY(-14px)}
-.tube.done .cat span{opacity:.75}
-.bar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-button{font:inherit;font-size:14px;font-weight:700;padding:11px 6px;border-radius:10px;border:1px solid var(--line);
-  background:var(--surface);color:var(--ink);cursor:pointer;touch-action:manipulation}
-button:disabled{opacity:.4;cursor:default}
-button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-button .n{font-weight:400;color:var(--muted);font-size:12px}
-button.primary .n{color:#fff}
-.foot{font-size:11px;color:var(--muted);text-align:center}
+html,body{margin:0;height:100%;overflow:hidden;background:#EFD3AC}
+body{color:var(--ink);font-family:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;font-size:15px;
+  -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+svg symbol{overflow:visible}
+.app{position:fixed;inset:0;max-width:520px;margin:0 auto;overflow:hidden;display:flex;flex-direction:column;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  background:radial-gradient(rgba(170,110,50,.13) 1.6px,transparent 2px) 0 0/22px 22px,linear-gradient(#F7E8CF,#EFD3AC)}
+.floor{position:absolute;left:0;right:0;top:72%;bottom:0;border-top:4px solid #9A6436;
+  background:repeating-linear-gradient(90deg,#C48A55 0 58px,#B67C48 58px 60px)}
+
+/* 위 막대 */
+.top{position:relative;z-index:3;flex:none;height:60px;display:flex;align-items:center;justify-content:space-between;padding:8px 14px 0}
+.round{width:44px;height:44px;border-radius:50%;border:0;padding:0;background:var(--cream);color:#6B4524;display:grid;place-items:center;box-shadow:0 3px 0 #D9BC94}
+.round:disabled{opacity:.45;cursor:default}
+.sign{background:#8E5A2E;color:#FFF3DC;font-weight:700;font-size:17px;padding:7px 20px;border-radius:12px;box-shadow:0 3px 0 #6A3F1C;white-space:nowrap}
+.moves{min-width:72px;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--cream);border-radius:22px;padding:6px 14px 6px 10px;
+  font-weight:700;font-size:17px;font-variant-numeric:tabular-nums;box-shadow:0 3px 0 #D9BC94}
+.moves .paw{width:20px;height:20px;fill:#C9733F;flex:none}
+
+/* 판 */
+.stage{position:relative;flex:1;min-height:0}
+.board{position:absolute;inset:0}
+.shelf{position:absolute;height:calc(var(--w)*.14);border-radius:3px;background:#A8713F;box-shadow:0 4px 0 #84552B,0 10px 12px rgba(80,40,10,.18)}
+.box{position:absolute;width:var(--w);height:calc(var(--w)*2.275);background:#D9A466;border:2px solid #8E5E30;border-radius:4px 4px 7px 7px;cursor:pointer;outline:none}
+.box::before{content:"";position:absolute;left:calc(var(--w)*-.14);right:calc(var(--w)*-.14);top:calc(var(--w)*-.64);bottom:-2px}
+.box:focus-visible{box-shadow:0 0 0 3px #fff,0 0 0 6px #8E5A2E}
+.inside{position:absolute;left:calc(var(--w)*.06);right:calc(var(--w)*.06);top:0;bottom:0;border-radius:2px;
+  background:linear-gradient(#5E3B1F,#7A4D2A 40%,#6C4425)}
+.front{position:absolute;z-index:2;left:-2px;right:-2px;bottom:-2px;height:calc(var(--w)*.22);background:#DCA86A;border:2px solid #8E5E30;border-radius:3px 3px 7px 7px}
+.front::after{content:"";position:absolute;left:50%;top:-2px;width:22%;height:calc(100% + 2px);transform:translateX(-50%);background:rgba(255,236,200,.55)}
+.flaps{position:absolute;top:calc(var(--w)*-.24);left:calc(var(--w)*-.15);width:calc(var(--w)*1.3);height:calc(var(--w)*.26);overflow:visible}
+.flaps path{fill:#E2B077;stroke:#8E5E30;stroke-width:2;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.flaps .fb{fill:#C38C52}
+.box.sel{box-shadow:0 0 0 3px #FFE1AE,0 0 24px rgba(255,186,90,.85)}
+.box.tgt{box-shadow:0 0 0 3px rgba(226,104,60,.5)}
+.box.hfrom{box-shadow:0 0 0 3px #FFE1AE}
+.box.hto{outline:3px dashed #FFF3DC;outline-offset:3px}
+.box.hto .inside{background:linear-gradient(#9E6838,#B98149 45%,#A8743F)}
+.box.done{background:#E0B074}
+.box.bad{animation:shake .36s ease-in-out}
+@keyframes shake{20%{transform:translateX(-5px) rotate(-2deg)}45%{transform:translateX(5px) rotate(2deg)}70%{transform:translateX(-3px) rotate(-1deg)}}
+.cat{position:absolute;z-index:1;left:calc(var(--w)*.125);bottom:calc(var(--w)*(.1 + var(--i)*.5));width:calc(var(--w)*.75);height:calc(var(--w)*.5625);
+  overflow:visible;pointer-events:none;transition:transform .16s ease-out}
+.cat.lift{z-index:4;transform:translateY(calc(var(--lift)*-1));filter:drop-shadow(0 8px 4px rgba(80,40,10,.25))}
+.cat.nudge{z-index:4;animation:nudge 1.1s ease-in-out infinite}
+@keyframes nudge{50%{transform:translateY(calc(var(--w)*-.2))}}
+.cat.ghost{opacity:.68;filter:saturate(.7) brightness(1.12);animation:ghost 1.6s ease-in-out infinite}
+@keyframes ghost{50%{opacity:.35}}
+.cat .el{transform-origin:18px 15px;transition:transform .2s}
+.cat .er{transform-origin:46px 15px;transition:transform .2s}
+.cat.sad .el{transform:rotate(-32deg)}
+.cat.sad .er{transform:rotate(32deg)}
+.tgt-paw{position:absolute;z-index:3;top:calc(var(--w)*-.6);left:50%;width:calc(var(--w)*.36);height:calc(var(--w)*.36);margin-left:calc(var(--w)*-.18);
+  fill:#E2683C;filter:drop-shadow(0 2px 0 #fff);animation:bob 1.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.blanket{position:absolute;z-index:2;left:-6px;right:-6px;bottom:calc(var(--w)*1.42);height:calc(var(--w)*.28);border-radius:10px 10px 6px 6px;border:2px solid #9B4B3C;
+  background:repeating-linear-gradient(90deg,#E67C6B 0 8px,#F7E3C8 8px 16px);box-shadow:0 4px 0 rgba(0,0,0,.12)}
+.zzz{position:absolute;z-index:3;top:calc(var(--w)*-.56);right:calc(var(--w)*-.12);font-weight:700;font-size:calc(var(--w)*.22);line-height:1;color:#7B5A9E;
+  animation:float 2.4s ease-in-out infinite}
+.zzz b{font-size:.78em;position:relative;top:-.45em;margin-left:1px}
+.zzz b+b{font-size:.62em;top:-.95em}
+@keyframes float{50%{transform:translateY(-3px)}}
+
+/* 말풍선 · 토스트 */
+.say{position:absolute;z-index:20;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.3;padding:7px 12px;border-radius:14px;white-space:nowrap;
+  box-shadow:0 6px 14px rgba(60,30,10,.25);pointer-events:none;animation:pop .18s ease-out}
+.say::after{content:"";position:absolute;bottom:-8px;left:var(--tx,50%);margin-left:-8px;border:8px solid transparent;border-bottom:0;border-top-color:var(--paper)}
+@keyframes pop{from{transform:scale(.85);opacity:0}}
+.toast{position:absolute;z-index:8;top:2px;left:50%;width:max-content;max-width:calc(100% - 24px);display:flex;align-items:center;gap:8px;padding:5px 14px 5px 8px;border-radius:18px;
+  background:var(--paper);color:var(--ink);font-size:13.5px;line-height:1.3;box-shadow:0 5px 14px rgba(70,35,10,.2);
+  opacity:0;transform:translate(-50%,-6px);transition:opacity .2s,transform .2s;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.warn{background:#FFE9D6;color:#8A3B16;box-shadow:0 0 0 2px #F2B48A,0 5px 14px rgba(70,35,10,.2)}
+.toast svg{width:30px;height:23px;flex:none}
+.toast span{overflow:hidden;text-overflow:ellipsis}
+
+/* 아래 막대 */
+.bar{position:relative;z-index:3;flex:none;display:flex;justify-content:center;gap:clamp(12px,6vw,30px);padding:6px 16px 14px}
+.btn{position:relative;width:clamp(78px,24vw,92px);height:clamp(58px,9.5vh,74px);border:0;padding:0;border-radius:20px;background:var(--cream);color:#6B4524;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;box-shadow:0 4px 0 var(--btn-shadow),0 10px 14px rgba(70,35,10,.2)}
+.btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 2px 0 var(--btn-shadow),0 6px 10px rgba(70,35,10,.2)}
+.btn:disabled{opacity:.45;cursor:default;box-shadow:0 2px 0 var(--btn-shadow)}
+.btn svg{width:26px;height:26px}
+.lbl{font-size:14px;font-weight:700}
+.badge{position:absolute;top:-7px;right:-7px;min-width:24px;height:24px;padding:0 6px;border-radius:12px;background:var(--accent);color:#fff;
+  font:700 12px system-ui,sans-serif;display:grid;place-items:center;border:2px solid var(--cream)}
+.btn.glow{box-shadow:0 4px 0 var(--btn-shadow),0 0 0 3px #FFE1AE,0 0 18px rgba(255,170,80,.9);animation:glow 1.2s ease-in-out infinite}
+@keyframes glow{50%{transform:translateY(-2px)}}
+
+/* 바텀시트 */
+.dim{position:absolute;inset:0;z-index:11;background:rgba(40,25,12,.35);opacity:0;pointer-events:none;transition:opacity .2s}
+.dim.on{opacity:1;pointer-events:auto}
+.sheet{position:absolute;z-index:12;left:0;right:0;bottom:0;background:var(--paper);border-radius:26px 26px 0 0;
+  padding:10px 20px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:6px;box-shadow:0 -8px 24px rgba(0,0,0,.18);
+  transform:translateY(105%);visibility:hidden;transition:transform .28s ease-out,visibility 0s .28s}
+.sheet.open{transform:none;visibility:visible;transition:transform .28s ease-out}
+.handle{display:block;width:44px;height:5px;margin:0 auto 4px;border-radius:3px;background:var(--line)}
+.sheet h2{margin:0;text-align:center;font-size:21px;color:#5A3A1E}
+.sub{margin:0;text-align:center;color:var(--muted);font-size:14px}
+.rate{display:flex;justify-content:center;gap:10px;margin:2px 0 4px}
+.rate svg{width:34px;height:34px;fill:var(--line)}
+.rate svg.on{fill:var(--accent);filter:drop-shadow(0 2px 0 #B84B24)}
+.primary{height:52px;border:0;border-radius:18px;background:var(--accent);color:#fff;font-size:18px;font-weight:700;box-shadow:0 4px 0 var(--accent-d);
+  display:flex;align-items:center;justify-content:center;gap:6px}
+.primary:active{transform:translateY(2px);box-shadow:0 2px 0 var(--accent-d)}
+.secondary{height:40px;border:0;background:transparent;color:var(--muted);font-size:15px;display:flex;align-items:center;justify-content:center;gap:6px}
+
+/* 튜토리얼 */
+.tut{position:absolute;inset:0;z-index:10;pointer-events:none;display:none}
+.tut.on{display:block}
+.tut .spot{position:absolute;left:0;top:0}
+.hand{position:absolute;width:40px;height:51px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.35));transition:left .25s,top .25s}
+.hand svg{width:100%;height:100%;transform:rotate(-12deg);animation:bob 1.1s ease-in-out infinite}
+.bubble{position:absolute;left:16px;right:16px;background:var(--paper);border-radius:18px;padding:10px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.bubble svg{width:46px;height:35px;flex:none}
+.bubble p{margin:0;font-size:15px;line-height:1.45}
+.bubble b{color:#C2522B}
+.bubble small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
 </style>
 </head>
 <body>
-<div class="app">
-  <header><h1>냥소트</h1><span class="foot">규칙 확인용 프로토타입</span></header>
-  <div class="stats">
-    <div class="stat"><div class="k">레벨</div><div class="v" id="sLevel">-</div></div>
-    <div class="stat"><div class="k">이동 수</div><div class="v" id="sMoves">0</div></div>
-    <div class="stat"><div class="k">최소 이동 수</div><div class="v" id="sMin">-</div></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+<defs><clipPath id="catclip"><rect x="6" y="9" width="52" height="37" rx="17"/></clipPath></defs>
+<symbol id="paw" viewBox="0 0 24 24"><ellipse cx="12" cy="15.5" rx="5" ry="4.2"/><circle cx="6" cy="10" r="2.2"/><circle cx="10" cy="6.5" r="2.2"/><circle cx="14" cy="6.5" r="2.2"/><circle cx="18" cy="10" r="2.2"/></symbol>
+<!-- 고양이 = 테두리(halo) + 왼귀 + 오른귀 + 몸(무늬) + 얼굴. 귀 색은 --el/--er/--ei 변수로 받는다. -->
+<symbol id="halo" viewBox="0 0 64 48"><rect x="6" y="9" width="52" height="37" rx="17" fill="#FFF4E0" stroke="#FFF4E0" stroke-width="5"/></symbol>
+<symbol id="earL" viewBox="0 0 64 48"><path d="M9 21 L13 2 L28 12 Z" fill="#FFF4E0" stroke="#FFF4E0" stroke-width="5" stroke-linejoin="round"/><path d="M9 21 L13 2 L28 12 Z" style="fill:var(--el)" stroke="#2A2420" stroke-width="2" stroke-linejoin="round"/><path d="M14 15 L15.5 7 L22 12 Z" style="fill:var(--ei)"/></symbol>
+<symbol id="earR" viewBox="0 0 64 48"><path d="M36 12 L51 2 L55 21 Z" fill="#FFF4E0" stroke="#FFF4E0" stroke-width="5" stroke-linejoin="round"/><path d="M36 12 L51 2 L55 21 Z" style="fill:var(--er)" stroke="#2A2420" stroke-width="2" stroke-linejoin="round"/><path d="M42 12 L48.5 7 L50 15 Z" style="fill:var(--ei)"/></symbol>
+<!-- a 치즈: 주황 + 이마 줄 3개 + 크림 턱 -->
+<symbol id="cat-a" viewBox="0 0 64 48"><rect x="6" y="9" width="52" height="37" rx="17" fill="#F6AA45"/><g clip-path="url(#catclip)"><path d="M27 12v6M32 11v7M37 12v6" stroke="#B85E14" stroke-width="2.8" stroke-linecap="round"/><ellipse cx="32" cy="44" rx="17" ry="9" fill="#FFE6BF"/><ellipse cx="32" cy="35" rx="10" ry="7" fill="#FFE6BF"/></g><rect x="6" y="9" width="52" height="37" rx="17" fill="none" stroke="#2A2420" stroke-width="2"/></symbol>
+<!-- b 턱시도: 검정 + 흰 가슴 -->
+<symbol id="cat-b" viewBox="0 0 64 48"><rect x="6" y="9" width="52" height="37" rx="17" fill="#2E2C36"/><g clip-path="url(#catclip)"><path d="M32 15C28 21 21 28 19 35C17 42 21 47 32 47C43 47 47 42 45 35C43 28 36 21 32 15Z" fill="#FAF7F0"/></g><rect x="6" y="9" width="52" height="37" rx="17" fill="none" stroke="#2A2420" stroke-width="2"/></symbol>
+<!-- c 고등어: 회청색 + M자 + 옆 줄무늬 -->
+<symbol id="cat-c" viewBox="0 0 64 48"><rect x="6" y="9" width="52" height="37" rx="17" fill="#8E97A6"/><g clip-path="url(#catclip)"><g stroke="#3F4655" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M24 12l3.5 6 4.5-5 4.5 5 3.5-6"/><path d="M5 22q6 1 9 5M5 30q6 1 9 5M5 38q5 1 8 4M59 22q-6 1-9 5M59 30q-6 1-9 5M59 38q-5 1-8 4"/></g><ellipse cx="32" cy="35" rx="9" ry="6.5" fill="#D3D8E0"/></g><rect x="6" y="9" width="52" height="37" rx="17" fill="none" stroke="#2A2420" stroke-width="2"/></symbol>
+<!-- d 삼색: 흰 바탕 + 왼쪽 주황 · 오른쪽 검정 큰 얼룩 -->
+<symbol id="cat-d" viewBox="0 0 64 48"><rect x="6" y="9" width="52" height="37" rx="17" fill="#FBF5EA"/><g clip-path="url(#catclip)"><path d="M4 30C4 14 10 7 24 7C29 13 27 21 21 25C15 29 9 32 4 30Z" fill="#EE953A"/><path d="M60 33C60 16 54 8 41 8C37 14 39 22 45 26C50 30 56 34 60 33Z" fill="#2E2C36"/></g><rect x="6" y="9" width="52" height="37" rx="17" fill="none" stroke="#2A2420" stroke-width="2"/></symbol>
+<!-- e 흰냥이: 무늬 없는 흰색 + 진분홍 귀 -->
+<symbol id="cat-e" viewBox="0 0 64 48"><rect x="6" y="9" width="52" height="37" rx="17" fill="#FDFAF4"/><g clip-path="url(#catclip)"><ellipse cx="15" cy="32" rx="4" ry="2.4" fill="#F4B4B4" opacity=".7"/><ellipse cx="49" cy="32" rx="4" ry="2.4" fill="#F4B4B4" opacity=".7"/></g><rect x="6" y="9" width="52" height="37" rx="17" fill="none" stroke="#2A2420" stroke-width="2"/></symbol>
+<!-- f 검은냥이: 무늬 없는 검정 -->
+<symbol id="cat-f" viewBox="0 0 64 48"><rect x="6" y="9" width="52" height="37" rx="17" fill="#24222A"/><g clip-path="url(#catclip)"><path d="M14 14q6-3 12-2" stroke="#4A4756" stroke-width="2.4" fill="none" stroke-linecap="round"/></g><rect x="6" y="9" width="52" height="37" rx="17" fill="none" stroke="#2A2420" stroke-width="2"/></symbol>
+<!-- g 회색: 무늬 없는 밝은 청회색 + 짙은 귀 -->
+<symbol id="cat-g" viewBox="0 0 64 48"><rect x="6" y="9" width="52" height="37" rx="17" fill="#A9B6C9"/><rect x="6" y="9" width="52" height="37" rx="17" fill="none" stroke="#2A2420" stroke-width="2"/></symbol>
+<!-- h 샴: 크림 몸 + 짙은 갈색 얼굴 가면 + 갈색 귀 -->
+<symbol id="cat-h" viewBox="0 0 64 48"><rect x="6" y="9" width="52" height="37" rx="17" fill="#F2E6CF"/><g clip-path="url(#catclip)"><ellipse cx="32" cy="31" rx="15.5" ry="12.5" fill="#5A3F30"/></g><rect x="6" y="9" width="52" height="37" rx="17" fill="none" stroke="#2A2420" stroke-width="2"/></symbol>
+<!-- i 젖소: 흰 바탕 + 검은 동그란 점 + 왼귀만 검정 -->
+<symbol id="cat-i" viewBox="0 0 64 48"><rect x="6" y="9" width="52" height="37" rx="17" fill="#FDFAF4"/><g clip-path="url(#catclip)" fill="#2E2C36"><circle cx="12" cy="39" r="7.5"/><ellipse cx="47" cy="14" rx="9" ry="6"/><circle cx="51" cy="40" r="4.2"/><circle cx="32" cy="45" r="3"/></g><rect x="6" y="9" width="52" height="37" rx="17" fill="none" stroke="#2A2420" stroke-width="2"/></symbol>
+<!-- j 카오스: 짙은 갈색 + 주황 얼룩 여러 개 -->
+<symbol id="cat-j" viewBox="0 0 64 48"><rect x="6" y="9" width="52" height="37" rx="17" fill="#3B2A24"/><g clip-path="url(#catclip)" fill="#DE8B3C"><path d="M5 17c6-6 15-7 18-2s-2 10-9 11S2 23 5 17z"/><path d="M39 41c4-6 14-8 18-3s-1 10-8 11-12-2-10-8z"/><path d="M30 8c4 3 6 8 3 13-3-3-5-7-6-11z"/><circle cx="17" cy="42" r="3.2"/><circle cx="51" cy="24" r="2.4"/></g><rect x="6" y="9" width="52" height="37" rx="17" fill="none" stroke="#2A2420" stroke-width="2"/></symbol>
+<!-- k 반반: 왼쪽 반 갈색 · 오른쪽 반 크림 (세로로 나뉨) -->
+<symbol id="cat-k" viewBox="0 0 64 48"><rect x="6" y="9" width="52" height="37" rx="17" fill="#FBF3E4"/><g clip-path="url(#catclip)"><path d="M0 0H33C30 12 35 24 31 33C29 39 33 44 32 48H0Z" fill="#A85F2A"/></g><rect x="6" y="9" width="52" height="37" rx="17" fill="none" stroke="#2A2420" stroke-width="2"/></symbol>
+<!-- l 벵갈: 황갈색 + 짙은 점박이 -->
+<symbol id="cat-l" viewBox="0 0 64 48"><rect x="6" y="9" width="52" height="37" rx="17" fill="#CC9150"/><g clip-path="url(#catclip)" fill="#4E3018"><circle cx="13" cy="21" r="2.8"/><circle cx="11" cy="32" r="2.6"/><circle cx="17" cy="41" r="2.4"/><circle cx="51" cy="21" r="2.8"/><circle cx="53" cy="32" r="2.6"/><circle cx="47" cy="41" r="2.4"/><circle cx="32" cy="14" r="2.4"/><circle cx="25" cy="15" r="1.7"/><circle cx="39" cy="15" r="1.7"/><circle cx="32" cy="44" r="1.8"/></g><rect x="6" y="9" width="52" height="37" rx="17" fill="none" stroke="#2A2420" stroke-width="2"/></symbol>
+<!-- 얼굴: n 기본 · u 집힘(놀람) · z 잠 · s 시무룩. 입과 눈썹 색은 --mouth -->
+<symbol id="face-n" viewBox="0 0 64 48"><g stroke="#2A2420" stroke-width="1.2"><circle cx="23" cy="25" r="4.3" fill="#FFF3C9"/><circle cx="41" cy="25" r="4.3" fill="#FFF3C9"/></g><circle cx="23" cy="25.5" r="2.5" fill="#2A2420"/><circle cx="41" cy="25.5" r="2.5" fill="#2A2420"/><circle cx="24" cy="24.4" r=".9" fill="#fff"/><circle cx="42" cy="24.4" r=".9" fill="#fff"/><path d="M30 31h4l-2 2.4z" fill="#E98A8F"/><path d="M28 35q2 2 4 0q2 2 4 0" style="stroke:var(--mouth,#2A2420)" stroke-width="1.4" fill="none" stroke-linecap="round"/></symbol>
+<symbol id="face-u" viewBox="0 0 64 48"><g stroke="#2A2420" stroke-width="1.2"><circle cx="23" cy="24" r="5.4" fill="#FFF3C9"/><circle cx="41" cy="24" r="5.4" fill="#FFF3C9"/></g><circle cx="23" cy="24.5" r="3.4" fill="#2A2420"/><circle cx="41" cy="24.5" r="3.4" fill="#2A2420"/><circle cx="24.3" cy="23" r="1.2" fill="#fff"/><circle cx="42.3" cy="23" r="1.2" fill="#fff"/><path d="M30 31h4l-2 2.4z" fill="#E98A8F"/><ellipse cx="32" cy="36.5" rx="2.2" ry="2.6" style="fill:var(--mouth,#2A2420)"/></symbol>
+<symbol id="face-z" viewBox="0 0 64 48"><g fill="none" stroke-linecap="round"><path d="M18 26q5 3.5 10 0M36 26q5 3.5 10 0" stroke="#FFF3C9" stroke-width="3.6" opacity=".75"/><path d="M18 26q5 3.5 10 0M36 26q5 3.5 10 0" stroke="#2A2420" stroke-width="1.8"/></g><ellipse cx="16" cy="32" rx="3.5" ry="2" fill="#F08C8C" opacity=".55"/><ellipse cx="48" cy="32" rx="3.5" ry="2" fill="#F08C8C" opacity=".55"/><path d="M30 31h4l-2 2.4z" fill="#E98A8F"/><path d="M30 35.5q2 1.4 4 0" style="stroke:var(--mouth,#2A2420)" stroke-width="1.3" fill="none" stroke-linecap="round"/></symbol>
+<symbol id="face-s" viewBox="0 0 64 48"><g stroke="#2A2420" stroke-width="1.2"><circle cx="23" cy="26" r="4" fill="#FFF3C9"/><circle cx="41" cy="26" r="4" fill="#FFF3C9"/></g><circle cx="23" cy="27.6" r="2.2" fill="#2A2420"/><circle cx="41" cy="27.6" r="2.2" fill="#2A2420"/><path d="M17.5 21L26 18.6M46.5 21L38 18.6" style="stroke:var(--mouth,#2A2420)" stroke-width="1.6" stroke-linecap="round"/><path d="M30 31h4l-2 2.4z" fill="#E98A8F"/><path d="M28.5 37.6q3.5-3 7 0" style="stroke:var(--mouth,#2A2420)" stroke-width="1.4" fill="none" stroke-linecap="round"/><path d="M16.6 31q-1.8 2.8 0 3.9q1.8-1.1 0-3.9z" fill="#8EC5F0"/></symbol>
+</svg>
+
+<div class="app" id="app">
+  <div class="floor" id="floor"></div>
+  <header class="top">
+    <button class="round" id="bPause" aria-label="일시정지"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M9 5v14M15 5v14"/></svg></button>
+    <div class="sign">레벨 <span id="sLevel">-</span></div>
+    <div class="moves" aria-label="이동 수"><svg class="paw" aria-hidden="true"><use href="#paw"/></svg><span id="sMoves">0</span></div>
+  </header>
+  <main class="stage" id="stage">
+    <div class="board" id="board"></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"><svg viewBox="0 0 64 48" aria-hidden="true" style="--el:#F6AA45;--er:#F6AA45;--ei:#F3B8B0"><use href="#halo"/><use href="#earL"/><use href="#earR"/><use href="#cat-a"/><use id="toastFace" href="#face-n"/></svg><span id="toastTxt"></span></div>
+  </main>
+  <nav class="bar">
+    <button class="btn" id="bUndo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H10"/></svg><span class="lbl">되돌리기</span></button>
+    <button class="btn" id="bAdd" aria-label="상자 추가"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 9.5h17v10a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5z"/><path d="M3.5 9.5L6 4h12l2.5 5.5"/><path d="M12 12.5v6M9 15.5h6"/></svg><span class="lbl">상자</span><span class="badge" id="nAdd">1</span></button>
+    <button class="btn" id="bHint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.8 10.6c.8.7 1.3 1.5 1.3 2.4h5c0-.9.5-1.7 1.3-2.4A6 6 0 0 0 12 3z"/></svg><span class="lbl">힌트</span></button>
+  </nav>
+  <div class="tut" id="tut" aria-hidden="true">
+    <svg class="spot" id="tutSpot"></svg>
+    <div class="hand" id="tutHand"><svg viewBox="0 0 44 56"><path d="M16 26V8a4 4 0 0 1 8 0v14l9.5 2.2a5 5 0 0 1 3.9 5.6L35.5 44a8 8 0 0 1-8 7H19a8 8 0 0 1-6.4-3.2L5.2 37.6a3.6 3.6 0 0 1 5.4-4.7L16 38z" fill="#FFF7EC" stroke="#2A2420" stroke-width="2.2" stroke-linejoin="round"/><path d="M24 22v9M29 23.3v8.2" stroke="#2A2420" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+    <div class="bubble" id="tutBubble"><svg viewBox="0 0 64 48" style="--el:#F6AA45;--er:#F6AA45;--ei:#F3B8B0"><use href="#halo"/><use href="#earL"/><use href="#earR"/><use href="#cat-a"/><use href="#face-n"/></svg><p>맨 위 친구를 톡 집어서<br><b>같은 무늬</b> 친구 위에 놓아 주세요<small>다른 곳을 누르면 닫혀요</small></p></div>
   </div>
-  <div class="notice info" id="notice">같은 무늬 고양이를 한 상자에 4마리씩 모아 주세요.</div>
-  <div class="board" id="board"></div>
-  <div class="bar">
-    <button id="bUndo">되돌리기 <span class="n" id="nUndo">(0회)</span></button>
-    <button id="bAdd">상자 추가 <span class="n" id="nAdd">(1회 남음)</span></button>
-    <button id="bHint">힌트 <span class="n" id="nHint">(0회)</span></button>
-    <button id="bRestart">다시 시작</button>
-    <button id="bNext" class="primary" disabled>다음 레벨</button>
-  </div>
-  <div class="foot">주소 끝에 ?level=번호 를 붙이면 그 레벨로 바로 갑니다.</div>
+  <div class="dim" id="dim"></div>
+  <section class="sheet" id="pauseSheet" aria-label="일시정지">
+    <i class="handle"></i>
+    <h2>잠깐 쉬는 중</h2>
+    <p class="sub">고양이들이 기다리고 있어요</p>
+    <button class="primary" id="bResume">계속하기</button>
+    <button class="secondary" id="bRestart"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v4.5h-4.5"/></svg> 다시 시작</button>
+  </section>
+  <section class="sheet" id="clearSheet" aria-label="클리어">
+    <i class="handle"></i>
+    <h2>모두 꿈나라로 갔어요</h2>
+    <p class="sub" id="clearSub"></p>
+    <div class="rate" id="rate"></div>
+    <button class="primary" id="bNext">다음 방으로 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    <button class="secondary" id="bRetry"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4v4.5h-4.5"/></svg> 다시 하기</button>
+  </section>
 </div>
 
 <!-- ===== 게임 로직: 화면과 분리된 순수 함수 (Unity C#으로 옮길 부분) ===== -->
@@ -338,22 +480,28 @@ if (typeof module !== 'undefined' && module.exports) module.exports = NyangLogic
 (function () {
   'use strict';
   var L = NyangLogic;
-  // 무늬: 이름, 몸 색, 귀 색 (색과 글자를 함께 써서 색만으로 구분하지 않게 함)
+  // 무늬별 귀 색(왼쪽, 오른쪽, 안쪽)과 입 색. 몸 무늬는 위 SVG의 cat-a ~ cat-l.
+  // 색 + 무늬 모양 + 귀 색을 함께 써서 흑백에서도 구분되게 했다.
   var PATTERNS = [
-    { name: '치즈', bg: '#f3a23c', ear: '#d9822a' },
-    { name: '턱시도', bg: 'linear-gradient(180deg,#2b2b33 0 55%,#ffffff 55% 100%)', ear: '#2b2b33' },
-    { name: '고등어', bg: 'repeating-linear-gradient(90deg,#8d8a7a 0 6px,#5b584b 6px 9px)', ear: '#5b584b' },
-    { name: '삼색', bg: 'linear-gradient(90deg,#f3a23c 0 33%,#ffffff 33% 66%,#2b2b33 66%)', ear: '#f3a23c' },
-    { name: '흰냥', bg: '#fbfbf7', ear: '#e9d8d0' },
-    { name: '검냥', bg: '#1d1d22', ear: '#1d1d22' },
-    { name: '회색', bg: '#9ba3b0', ear: '#7d8592' },
-    { name: '샴', bg: 'radial-gradient(circle at 50% 60%,#5a4232 0 22%,#efe2c8 24%)', ear: '#5a4232' },
-    { name: '카오스', bg: 'repeating-linear-gradient(135deg,#3a2a22 0 7px,#c9772e 7px 12px)', ear: '#3a2a22' },
-    { name: '러블', bg: '#6f86a6', ear: '#56698a' },
-    { name: '갈냥', bg: '#8a5a36', ear: '#6c4428' },
-    { name: '크림', bg: '#f1d9a8', ear: '#dcbd82' }
+    { id: 'a', name: '치즈', el: '#F6AA45', er: '#F6AA45', ei: '#F3B8B0' },
+    { id: 'b', name: '턱시도', el: '#2E2C36', er: '#2E2C36', ei: '#C98C93' },
+    { id: 'c', name: '고등어', el: '#8E97A6', er: '#8E97A6', ei: '#F3B8B0' },
+    { id: 'd', name: '삼색', el: '#EE953A', er: '#2E2C36', ei: '#F3B8B0' },
+    { id: 'e', name: '흰냥이', el: '#FDFAF4', er: '#FDFAF4', ei: '#EE8C9A' },
+    { id: 'f', name: '검은냥이', el: '#24222A', er: '#24222A', ei: '#7E525B', mouth: '#CDBFAF' },
+    { id: 'g', name: '회색', el: '#5E6B80', er: '#5E6B80', ei: '#C9A3AE' },
+    { id: 'h', name: '샴', el: '#5A3F30', er: '#5A3F30', ei: '#8A6A58', mouth: '#E9DCC4' },
+    { id: 'i', name: '젖소', el: '#2E2C36', er: '#FDFAF4', ei: '#F3B8B0' },
+    { id: 'j', name: '카오스', el: '#DE8B3C', er: '#3B2A24', ei: '#C98C93', mouth: '#E9D3B8' },
+    { id: 'k', name: '반반', el: '#A85F2A', er: '#FBF3E4', ei: '#F3B8B0' },
+    { id: 'l', name: '벵갈', el: '#CC9150', er: '#CC9150', ei: '#F3B8B0' }
   ];
   var KEY = 'nyangsort.proto.level';
+  var TUT_KEY = 'nyangsort.tutorial.done';
+  var RM = false;
+  try { RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+  // 상자 크기 비율 (상자 너비 w 기준)
+  var BOX_H = 2.275, LIFT_SPACE = 0.66, SHELF = 0.16, COL = 1.3, TOAST_LANE = 46;
 
   function loadLevel() {
     try {
@@ -369,19 +517,58 @@ if (typeof module !== 'undefined' && module.exports) module.exports = NyangLogic
   function saveLevel(n) {
     try { localStorage.setItem(KEY, String(n)); } catch (e) {}
   }
+  function tutSeen() {
+    try { return localStorage.getItem(TUT_KEY) === '1'; } catch (e) { return false; }
+  }
+  function setTutSeen() {
+    try { localStorage.setItem(TUT_KEY, '1'); } catch (e) {}
+  }
 
   var $ = function (id) { return document.getElementById(id); };
   var S = { level: 1, gen: null, tubes: [], history: [], moves: 0, undoUsed: 0, hintUsed: 0,
-            addUsed: false, selected: -1, hint: null, cleared: false, msg: null, busy: false, checkToken: 0 };
+            addUsed: false, selected: -1, hint: null, cleared: false, busy: false, checkToken: 0,
+            stuck: false, sad: null, sadToken: 0, clearToken: 0, sheet: null, tut: null, lay: null,
+            toastTimer: 0, sayTimer: 0 };
 
-  function setMsg(kind, text) { S.msg = { kind: kind, text: text }; }
+  // ---- 토스트 · 말풍선 ----
+  function toast(text, kind, ms) {
+    var el = $('toast');
+    $('toastTxt').textContent = text;
+    $('toastFace').setAttribute('href', kind === 'warn' ? '#face-s' : '#face-n');
+    el.className = 'toast show' + (kind === 'warn' ? ' warn' : '');
+    clearTimeout(S.toastTimer);
+    if (ms) S.toastTimer = setTimeout(clearToast, ms);
+  }
+  function clearToast() { clearTimeout(S.toastTimer); $('toast').className = 'toast'; }
 
+  function say(i, text) {
+    hideSay();
+    var b = S.lay && S.lay.boxes[i];
+    if (!b) return;
+    var el = document.createElement('div');
+    el.className = 'say'; el.id = 'say'; el.textContent = text;
+    $('stage').appendChild(el);
+    var W = $('stage').clientWidth, bw = el.offsetWidth, bh = el.offsetHeight;
+    var cx = b.x + S.lay.w / 2;
+    var left = Math.max(8, Math.min(W - bw - 8, cx - bw / 2));
+    el.style.left = left + 'px';
+    el.style.top = Math.max(2, b.y - S.lay.w * 0.3 - bh) + 'px';
+    el.style.setProperty('--tx', Math.max(14, Math.min(bw - 14, cx - left)) + 'px');
+    S.sayTimer = setTimeout(hideSay, 1800);
+  }
+  function hideSay() {
+    clearTimeout(S.sayTimer);
+    var el = $('say'); if (el) el.parentNode.removeChild(el);
+  }
+
+  // ---- 레벨 진행 ----
   function startLevel(n) {
-    S.level = n; S.busy = true;
+    S.level = n; S.busy = true; S.gen = null;
     saveLevel(n);
-    $('sLevel').textContent = n; $('sMin').textContent = '…';
-    $('notice').className = 'notice info'; $('notice').textContent = '레벨 만드는 중…';
+    closeSheets(); hideSay(); endTut(false);
+    $('sLevel').textContent = n; $('sMoves').textContent = '0';
     $('board').innerHTML = '';
+    toast('방을 준비하는 중…', 'info', 0);
     setTimeout(function () {
       var t0 = performance.now();
       S.gen = L.generateLevel(n);
@@ -393,15 +580,22 @@ if (typeof module !== 'undefined' && module.exports) module.exports = NyangLogic
   function resetBoard() {
     S.tubes = S.gen.tubes.slice(); S.history = []; S.moves = 0; S.undoUsed = 0; S.hintUsed = 0;
     S.addUsed = false; S.selected = -1; S.hint = null; S.cleared = false;
-    setMsg('info', '같은 무늬 고양이를 한 상자에 4마리씩 모아 주세요.');
+    S.stuck = false; S.sad = null; S.checkToken++; S.clearToken++;
+    closeSheets(); hideSay(); clearToast();
+    var showTut = S.level === 1 && !tutSeen();
+    if (S.level <= 3 && !showTut) toast('같은 무늬 고양이를 한 상자에 4마리씩 모아 주세요', 'info', 3200);
     render();
+    if (showTut) startTut();
   }
 
   // 막다른 상태 확인: 쓸모 있는 이동이 없거나, 솔버가 풀 수 없다고 증명하면 안내
+  function stuckText(head) {
+    return head + (S.addUsed ? ' 되돌려 보세요' : ' 되돌리기나 상자를 써 보세요');
+  }
   function checkStuck() {
     if (S.cleared) return;
     if (L.usefulMoves(S.tubes).length === 0) {
-      setMsg('warn', '막혔어요! 되돌리기나 상자 추가를 써 보세요.');
+      S.stuck = true; toast(stuckText('막혔어요!'), 'warn', 0);
       render(); return;
     }
     var token = ++S.checkToken;
@@ -409,50 +603,62 @@ if (typeof module !== 'undefined' && module.exports) module.exports = NyangLogic
       if (token !== S.checkToken || S.cleared) return;
       var r = L.solve(S.tubes, 20000);
       if (r.status === 'unsolvable') {
-        setMsg('warn', '이 상태로는 풀 수 없어요. 되돌리기나 상자 추가를 써 보세요.');
+        S.stuck = true; toast(stuckText('이대로는 못 풀어요.'), 'warn', 0);
         render();
       }
     }, 30);
   }
 
   function onTap(i) {
-    if (S.busy || S.cleared) return;
+    if (S.busy || S.cleared || S.sheet) return;
     var t = S.tubes;
+    hideSay();
     if (S.selected < 0) {
       if (t[i].length === 0) return;
-      S.selected = i; render(); return;
+      S.selected = i; S.sad = null; render(); return;
     }
     if (S.selected === i) { S.selected = -1; render(); return; }
-    if (L.canMove(t, S.selected, i)) {
+    var from = S.selected;
+    if (L.canMove(t, from, i)) {
+      var k = L.moveCount(t, from, i);
+      var start = catRects(from, k);
       S.history.push(t);
-      S.tubes = L.applyMove(t, S.selected, i);
-      S.moves++; S.selected = -1; S.hint = null;
+      S.tubes = L.applyMove(t, from, i);
+      S.moves++; S.selected = -1; S.hint = null; S.sad = null; S.stuck = false;
+      if (S.tut) endTut(true);
+      clearToast();
       if (L.isSolved(S.tubes)) {
         S.cleared = true;
         saveLevel(S.level + 1);
-        var diff = S.moves - S.gen.minMoves;
-        setMsg('good', '클리어! ' + S.moves + '수 (최소 ' + S.gen.minMoves + '수' + (diff <= 0 ? ', 최소 이동!' : ', +' + diff) + ')');
+        scheduleClear();
       } else {
-        setMsg('info', '좋아요. 계속 모아 주세요.');
         checkStuck();
       }
-      render(); return;
+      render();
+      flyCats(i, k, start);
+      return;
     }
-    // 놓을 수 없는 곳
-    var from = S.selected;
-    if (t[i].length > 0) { S.selected = i; } else { S.selected = -1; }
-    setMsg('warn', '거기엔 놓을 수 없어요. 빈 상자나 맨 위가 같은 무늬인 상자에만 놓을 수 있어요.');
+    // 놓을 수 없는 곳: 상자가 흔들리고, 들린 고양이는 시무룩하게 돌아간다
+    var run = L.topRun(t[from]);
+    var lift = liftPx(from);
+    var tok = ++S.sadToken;
+    S.selected = -1;
+    S.sad = { box: from, n: run, token: tok };
     render();
-    var el = $('board').children[i];
-    if (el && from >= 0) { el.classList.add('bad'); }
+    bounceBack(from, run, lift);
+    shake(i);
+    say(i, t[i].length >= L.CAP ? '상자가 가득 찼어요' : '맨 위가 같은 무늬여야 해요');
+    setTimeout(function () {
+      if (S.sad && S.sad.token === tok) { S.sad = null; render(); }
+    }, 1100);
   }
 
   function undo() {
-    if (S.busy || S.history.length === 0) return;
+    if (S.busy || S.history.length === 0 || S.cleared) return;
     S.tubes = S.history.pop(); S.moves--; S.undoUsed++;
     S.selected = -1; S.hint = null; S.cleared = false; S.checkToken++;
-    $('bNext').disabled = true;
-    setMsg('info', '한 수 되돌렸어요.');
+    S.stuck = false; S.sad = null; hideSay();
+    toast('한 번 되돌렸어요', 'info', 1400);
     checkStuck(); render();
   }
   function addTube() {
@@ -462,80 +668,294 @@ if (typeof module !== 'undefined' && module.exports) module.exports = NyangLogic
     // 되돌리기 기록에도 빈 상자를 붙여, 되돌려도 추가한 상자는 남게 한다
     S.history = S.history.map(function (h) { return h.concat(['']); });
     S.selected = -1; S.hint = null; S.checkToken++;
-    setMsg('info', '빈 상자를 하나 추가했어요.');
+    S.stuck = false; S.sad = null; hideSay();
+    toast('빈 상자를 하나 가져왔어요', 'info', 1800);
     render();
   }
   function hint() {
     if (S.busy || S.cleared) return;
+    hideSay();
     var r = L.solve(S.tubes, 300000);
     if (r.status === 'solved' && r.moves.length > 0) {
       S.hintUsed++; S.hint = r.moves[0]; S.selected = -1;
-      setMsg('hint', '점선 상자에서 실선 상자로 옮겨 보세요. (여기서 남은 최소 ' + r.moves.length + '수)');
+      toast('흐린 자리로 옮겨 보세요', 'info', 2600);
     } else if (r.status === 'unsolvable') {
-      setMsg('warn', '이 상태로는 풀 수 없어요. 되돌리기나 상자 추가를 써 보세요.');
+      toast(stuckText('이대로는 못 풀어요.'), 'warn', 0);
     } else {
-      setMsg('warn', '힌트를 계산하지 못했어요. (탐색 상한 초과)');
+      toast('힌트를 못 찾았어요. 조금 더 옮긴 뒤 눌러 주세요', 'warn', 3000);
     }
     render();
   }
+
+  // ---- 클리어 ----
+  function rating() {
+    var min = S.gen.minMoves;
+    return S.moves <= min ? 3 : S.moves <= min + 2 ? 2 : 1;
+  }
+  function scheduleClear() {
+    var tok = ++S.clearToken;
+    // 잠든 고양이들을 잠깐 보여 준 뒤 시트를 올린다
+    setTimeout(function () {
+      if (!S.cleared || tok !== S.clearToken) return;
+      var n = rating(), html = '';
+      for (var p = 0; p < 3; p++) html += '<svg viewBox="0 0 24 24" class="' + (p < n ? 'on' : '') + '" aria-hidden="true"><use href="#paw"/></svg>';
+      $('rate').innerHTML = html;
+      $('rate').setAttribute('aria-label', '발바닥 3개 중 ' + n + '개');
+      $('clearSub').textContent = S.moves + '번 만에 재웠어요 · 최소 ' + S.gen.minMoves + '번';
+      openSheet('clear');
+      render();
+      if (!RM && $('board').animate) $('board').animate([{ opacity: .4, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }], { duration: 300, easing: 'ease-out' });
+    }, RM ? 700 : 950);
+  }
+
+  // ---- 바텀시트 ----
+  function openSheet(name) {
+    closeSheets();
+    S.sheet = name;
+    $(name === 'clear' ? 'clearSheet' : 'pauseSheet').classList.add('open');
+    if (name === 'pause') $('dim').classList.add('on');
+  }
+  function closeSheets() {
+    S.sheet = null;
+    $('pauseSheet').classList.remove('open'); $('clearSheet').classList.remove('open');
+    $('dim').classList.remove('on');
+  }
+
+  // ---- 튜토리얼 (레벨 1, 처음 한 번) ----
+  function startTut() {
+    var m = S.gen.solution[0];
+    S.tut = { from: m[0], to: m[1] };
+    $('tut').classList.add('on');
+    updateTut();
+  }
+  function endTut(save) {
+    if (!S.tut) return;
+    S.tut = null;
+    $('tut').classList.remove('on');
+    if (save !== false) setTutSeen();
+  }
+  function updateTut() {
+    if (!S.tut || !S.lay) return;
+    var app = $('app'), AW = app.clientWidth, AH = app.clientHeight;
+    var ar = app.getBoundingClientRect();
+    var w = S.lay.w, holes = '', uTop = 1e9, uBot = 0;
+    [S.tut.from, S.tut.to].forEach(function (i) {
+      var el = boxEl(i); if (!el) return;
+      var r = el.getBoundingClientRect();
+      var x = r.left - ar.left - w * 0.22, y = r.top - ar.top - w * 0.72;
+      var hw = r.width + w * 0.44, hh = r.height + w * 0.86;
+      holes += '<rect x="' + x + '" y="' + y + '" width="' + hw + '" height="' + hh + '" rx="18" fill="#000"/>';
+      uTop = Math.min(uTop, y); uBot = Math.max(uBot, y + hh);
+    });
+    var spot = $('tutSpot');
+    spot.setAttribute('width', AW); spot.setAttribute('height', AH);
+    spot.setAttribute('viewBox', '0 0 ' + AW + ' ' + AH);
+    spot.innerHTML = '<defs><mask id="spotm"><rect width="' + AW + '" height="' + AH + '" fill="#fff"/>' + holes +
+      '</mask></defs><rect width="' + AW + '" height="' + AH + '" fill="rgba(38,24,12,.62)" mask="url(#spotm)"/>';
+    // 손가락: 고르기 전에는 옮길 고양이, 고른 뒤에는 놓을 상자
+    var target = S.selected === S.tut.from ? S.tut.to : S.tut.from;
+    var tb = boxEl(target).getBoundingClientRect();
+    var px, py;
+    if (target === S.tut.from) {
+      var cats = boxEl(target).querySelectorAll('.cat');
+      var cr = cats[cats.length - 1].getBoundingClientRect();
+      px = cr.left + cr.width * 0.5; py = cr.top + cr.height * 0.55;
+    } else {
+      px = tb.left + tb.width * 0.5; py = tb.top + tb.height * 0.3;
+    }
+    var hand = $('tutHand');
+    hand.style.left = (px - ar.left - 16) + 'px';
+    hand.style.top = (py - ar.top - 2) + 'px';
+    // 말풍선: 밝힌 상자 아래에 자리가 있으면 아래, 없으면 위
+    var bub = $('tutBubble'), bh = bub.offsetHeight + 14;
+    var below = AH - uBot - 90 >= bh;
+    bub.style.top = (below ? uBot + 14 : Math.max(8, uTop - bh)) + 'px';
+  }
+
+  // ---- 배치 계산 ----
+  function layout(n) {
+    var st = $('stage'), W = st.clientWidth, H = st.clientHeight;
+    if (S.sheet === 'clear') {
+      var sh = $('clearSheet');
+      H = Math.min(H, $('app').clientHeight - sh.offsetHeight - st.offsetTop);
+    }
+    var lane = S.cleared ? 6 : TOAST_LANE;
+    var liftK = S.cleared ? 0.6 : LIFT_SPACE;
+    var R = liftK + BOX_H + SHELF;
+    var best = null;
+    for (var cols = 1; cols <= n; cols++) {
+      var rows = Math.ceil(n / cols);
+      var w = Math.min(84, (W - 16) / (COL * cols), (H - lane - 6) / (R * rows));
+      if (!best || w > best.w + 0.01) best = { w: w, cols: cols, rows: rows };
+    }
+    var w = Math.max(20, Math.floor(best.w * 10) / 10), rows = best.rows;
+    var totalH = rows * R * w;
+    var y0 = lane + Math.max(0, (H - lane - totalH) / 2);
+    var base = Math.floor(n / rows), extra = n % rows, idx = 0;
+    var boxes = [], shelves = [];
+    for (var r = 0; r < rows; r++) {
+      var c = base + (r < extra ? 1 : 0);
+      var rowW = c * w + (c - 1) * (COL - 1) * w;
+      var x0 = (W - rowW) / 2, y = y0 + r * R * w + liftK * w;
+      for (var j = 0; j < c; j++) boxes[idx++] = { x: x0 + j * COL * w, y: y };
+      shelves.push({ x: x0 - 0.3 * w, y: y + BOX_H * w - 2, wd: rowW + 0.6 * w, last: r === rows - 1 });
+    }
+    return { w: w, boxes: boxes, shelves: shelves, W: W, H: H };
+  }
+  // 들린 고양이가 상자 바로 위까지 올라가는 높이(px)
+  function liftPx(i) {
+    var w = S.lay ? S.lay.w : 60, n = S.tubes[i].length;
+    return (BOX_H + 0.06 - 0.1 - (n - 1) * 0.5) * w;
+  }
+
+  function catSVG(code, face, cls, k) {
+    var p = PATTERNS[code.charCodeAt(0) - 97];
+    return '<svg class="cat' + cls + '" viewBox="0 0 64 48" aria-hidden="true" style="--i:' + k + ';--el:' + p.el + ';--er:' + p.er + ';--ei:' + p.ei +
+      (p.mouth ? ';--mouth:' + p.mouth : '') + '"><use href="#halo"/><use class="el" href="#earL"/><use class="er" href="#earR"/><use href="#cat-' + p.id +
+      '"/><use href="#face-' + face + '"/></svg>';
+  }
+  var FLAPS = '<svg class="flaps" viewBox="0 0 100 20" preserveAspectRatio="none" aria-hidden="true"><path class="fb" d="M24 19 L29 5 H71 L76 19Z"/><path d="M11 19 L1 3 L17 0 L27 19Z"/><path d="M89 19 L99 3 L83 0 L73 19Z"/></svg>';
+  var PAW = '<svg class="tgt-paw" aria-hidden="true"><use href="#paw"/></svg>';
+
+  function boxEl(i) { return $('board').querySelector('.box[data-i="' + i + '"]'); }
 
   function render() {
     if (!S.gen) return;
     var t = S.tubes;
     $('sLevel').textContent = S.level;
     $('sMoves').textContent = S.moves;
-    $('sMin').textContent = S.gen.minMoves;
-    $('notice').className = 'notice ' + S.msg.kind;
-    $('notice').textContent = S.msg.text;
-    $('nUndo').textContent = '(' + S.undoUsed + '회)';
-    $('nAdd').textContent = S.addUsed ? '(사용함)' : '(1회 남음)';
-    $('nHint').textContent = '(' + S.hintUsed + '회)';
-    $('bUndo').disabled = S.history.length === 0;
+    $('bUndo').disabled = S.history.length === 0 || S.cleared;
     $('bAdd').disabled = S.addUsed || S.cleared;
+    $('nAdd').style.display = S.addUsed ? 'none' : '';
+    $('bAdd').setAttribute('aria-label', S.addUsed ? '상자 추가 (사용함)' : '상자 추가 (1번 남음)');
     $('bHint').disabled = S.cleared;
-    $('bNext').disabled = !S.cleared;
+    $('bPause').disabled = S.cleared;
+    $('bUndo').classList.toggle('glow', S.stuck && !$('bUndo').disabled);
+    $('bAdd').classList.toggle('glow', S.stuck && !$('bAdd').disabled);
 
+    var lay = S.lay = layout(t.length), w = lay.w;
     var board = $('board');
-    var cols = t.length <= 6 ? t.length : Math.ceil(t.length / 2);
-    board.style.gridTemplateColumns = 'repeat(' + cols + ', minmax(0, 64px))';
-    board.style.justifyContent = 'center';
-    board.innerHTML = '';
-    for (var i = 0; i < t.length; i++) {
-      var tube = document.createElement('div');
-      tube.className = 'tube';
-      if (i === S.selected) tube.className += ' sel';
-      if (L.isDoneTube(t[i])) tube.className += ' done';
-      if (S.hint && S.hint[0] === i) tube.className += ' hint-from';
-      if (S.hint && S.hint[1] === i) tube.className += ' hint-to';
-      tube.setAttribute('role', 'button');
-      tube.setAttribute('aria-label', (i + 1) + '번 상자');
-      var run = i === S.selected ? L.topRun(t[i]) : 0;
-      for (var k = 0; k < t[i].length; k++) {
-        var p = PATTERNS[t[i].charCodeAt(k) - 97];
-        var cat = document.createElement('div');
-        cat.className = 'cat' + (k >= t[i].length - run ? ' up' : '');
-        cat.style.background = p.bg;
-        cat.style.setProperty('--ear', p.ear);
-        var sp = document.createElement('span');
-        sp.textContent = p.name;
-        cat.appendChild(sp);
-        tube.appendChild(cat);
+    board.style.setProperty('--w', w + 'px');
+    var html = '';
+    for (var s = 0; s < lay.shelves.length; s++) {
+      var sh = lay.shelves[s];
+      if (sh.last) {
+        $('floor').style.top = ($('stage').offsetTop + sh.y - 0.04 * w) + 'px';
+      } else {
+        html += '<i class="shelf" style="left:' + sh.x + 'px;top:' + sh.y + 'px;width:' + sh.wd + 'px"></i>';
       }
-      if (L.isDoneTube(t[i])) {
-        var z = document.createElement('div');
-        z.className = 'zzz'; z.textContent = 'zzz';
-        tube.appendChild(z);
-      }
-      (function (idx) { tube.addEventListener('click', function () { onTap(idx); }); })(i);
-      board.appendChild(tube);
     }
+    var sel = S.selected;
+    var hintN = S.hint ? L.moveCount(t, S.hint[0], S.hint[1]) : 0;
+    for (var i = 0; i < t.length; i++) {
+      var tube = t[i], len = tube.length, done = L.isDoneTube(tube);
+      var cls = 'box';
+      if (i === sel) cls += ' sel';
+      var tgt = sel >= 0 && i !== sel && L.canMove(t, sel, i);
+      if (tgt) cls += ' tgt';
+      if (done) cls += ' done';
+      if (S.hint && S.hint[0] === i) cls += ' hfrom';
+      if (S.hint && S.hint[1] === i) cls += ' hto';
+      var run = i === sel ? L.topRun(tube) : 0;
+      var names = [];
+      var inner = FLAPS + '<i class="inside"></i>';
+      for (var k = 0; k < len; k++) {
+        var top = k >= len - run, nudge = S.hint && S.hint[0] === i && k >= len - hintN;
+        var sad = S.sad && S.sad.box === i && k >= len - S.sad.n;
+        var face = done ? 'z' : top ? 'u' : sad ? 's' : 'n';
+        inner += catSVG(tube[k], face, top ? ' lift' : nudge ? ' nudge' : sad ? ' sad' : '', k);
+        names.push(PATTERNS[tube.charCodeAt(k) - 97].name);
+      }
+      if (S.hint && S.hint[1] === i) {
+        var src = t[S.hint[0]];
+        for (var g = 0; g < hintN; g++) inner += catSVG(src[src.length - 1], 'n', ' ghost', len + g);
+      }
+      inner += '<i class="front"></i>';
+      if (done) inner += '<i class="blanket"></i><span class="zzz" aria-hidden="true">z<b>z</b><b>z</b></span>';
+      if (tgt) inner += PAW;
+      var label = (i + 1) + '번 상자, ' + (len ? names.join(', ') + ' (아래부터)' : '비어 있음');
+      html += '<div class="' + cls + '" data-i="' + i + '" role="button" tabindex="0" aria-label="' + label + '" style="left:' + lay.boxes[i].x +
+        'px;top:' + lay.boxes[i].y + 'px' + (run ? ';--lift:' + liftPx(i) + 'px' : '') + '">' + inner + '</div>';
+    }
+    board.innerHTML = html;
+    if (S.tut) updateTut();
   }
 
+  // ---- 움직임 ----
+  function catRects(i, k) {
+    var el = boxEl(i); if (!el) return null;
+    var cats = el.querySelectorAll('.cat:not(.ghost)'), out = [];
+    for (var j = cats.length - k; j < cats.length; j++) out.push(cats[j].getBoundingClientRect());
+    return out;
+  }
+  // 고양이가 원래 상자에서 새 상자로 포물선을 그리며 날아간다
+  function flyCats(to, k, start) {
+    if (RM || !start) return;
+    var el = boxEl(to); if (!el || !el.animate) return;
+    var cats = el.querySelectorAll('.cat:not(.ghost)');
+    var first = cats.length - k, arc = S.lay.w * 0.6;
+    for (var j = 0; j < k; j++) {
+      var c = cats[first + j]; if (!c || !start[j]) continue;
+      var r = c.getBoundingClientRect();
+      var dx = start[j].left - r.left, dy = start[j].top - r.top;
+      c.style.zIndex = 30;
+      c.animate([
+        { transform: 'translate(' + dx + 'px,' + dy + 'px)' },
+        { transform: 'translate(' + dx * 0.5 + 'px,' + (Math.min(dy, 0) * 0.5 - arc) + 'px)', offset: 0.45 },
+        { transform: 'translate(0,0)' }
+      ], { duration: 260 + j * 30, easing: 'ease-in-out' });
+    }
+  }
+  function bounceBack(i, n, lift) {
+    if (RM) return;
+    var el = boxEl(i); if (!el || !el.animate) return;
+    var cats = el.querySelectorAll('.cat:not(.ghost)'), hop = S.lay.w * 0.12;
+    for (var j = cats.length - n; j < cats.length; j++) {
+      cats[j].animate([
+        { transform: 'translateY(' + -lift + 'px)' },
+        { transform: 'translateY(0)', offset: 0.55 },
+        { transform: 'translateY(' + -hop + 'px)', offset: 0.78 },
+        { transform: 'translateY(0)' }
+      ], { duration: 420, easing: 'ease-in' });
+    }
+  }
+  function shake(i) {
+    var el = boxEl(i); if (!el) return;
+    el.classList.remove('bad'); void el.offsetWidth; el.classList.add('bad');
+  }
+
+  // ---- 입력 ----
+  $('board').addEventListener('click', function (e) {
+    var b = e.target.closest('.box');
+    if (b) onTap(+b.getAttribute('data-i'));
+  });
+  $('board').addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var b = e.target.closest('.box');
+    if (b) { e.preventDefault(); onTap(+b.getAttribute('data-i')); }
+  });
+  // 튜토리얼 중에는 밝힌 두 상자만 누를 수 있고, 다른 곳을 누르면 닫힌다
+  document.addEventListener('click', function (e) {
+    if (!S.tut) return;
+    var b = e.target.closest && e.target.closest('.box');
+    if (b) {
+      var i = +b.getAttribute('data-i');
+      if (i === S.tut.from || i === S.tut.to) return;
+    }
+    e.stopPropagation(); e.preventDefault();
+    endTut(true);
+  }, true);
   $('bUndo').addEventListener('click', undo);
   $('bAdd').addEventListener('click', addTube);
   $('bHint').addEventListener('click', hint);
-  $('bRestart').addEventListener('click', function () { if (!S.busy && S.gen) resetBoard(); });
+  $('bPause').addEventListener('click', function () { if (!S.cleared) openSheet('pause'); });
+  $('bResume').addEventListener('click', closeSheets);
+  $('dim').addEventListener('click', closeSheets);
+  $('bRestart').addEventListener('click', function () { closeSheets(); if (!S.busy && S.gen) resetBoard(); });
   $('bNext').addEventListener('click', function () { if (!S.busy && S.cleared) startLevel(S.level + 1); });
+  $('bRetry').addEventListener('click', function () { if (!S.busy && S.gen) resetBoard(); });
+  var resizeT = 0;
+  window.addEventListener('resize', function () { clearTimeout(resizeT); resizeT = setTimeout(render, 60); });
 
   startLevel(loadLevel());
 })();
