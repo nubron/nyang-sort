@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>냥소트 프로토타입</title>
+<style>
+:root{
+  --bg:#f5f1ea; --surface:#ffffff; --ink:#2a2622; --muted:#7a7066; --line:#ddd4c8;
+  --accent:#d9772b; --accent-soft:#fbe9d8; --good:#2f8f5b; --good-soft:#dcf2e5;
+  --warn:#a85a00; --warn-soft:#fdeed6; --hint:#2f6fd6;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  font-size:15px;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.app{max-width:520px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;gap:10px;padding:12px 16px 16px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+h1{font-size:22px;margin:0}
+.stats{display:flex;gap:8px}
+.stat{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 8px;text-align:center}
+.stat .k{font-size:11px;color:var(--muted)}
+.stat .v{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.notice{min-height:40px;border-radius:10px;padding:8px 12px;font-size:14px;display:flex;align-items:center;justify-content:center;text-align:center}
+.notice.info{background:var(--surface);color:var(--muted);border:1px dashed var(--line)}
+.notice.warn{background:var(--warn-soft);color:var(--warn);font-weight:700}
+.notice.good{background:var(--good-soft);color:var(--good);font-weight:700}
+.notice.hint{background:#e3ecfb;color:var(--hint);font-weight:700}
+.board{flex:1;display:grid;gap:14px 6px;align-content:center;padding:18px 0 4px}
+.tube{position:relative;display:flex;flex-direction:column-reverse;justify-content:flex-start;gap:3px;
+  padding:4px 3px 5px;border:3px solid #9b8f82;border-top:none;border-radius:0 0 12px 12px;
+  background:rgba(255,255,255,.55);height:calc(4 * 33px + 3 * 3px + 12px);cursor:pointer;transition:transform .12s}
+.tube.sel{border-color:var(--accent);background:var(--accent-soft)}
+.tube.done{border-color:var(--good);background:var(--good-soft)}
+.tube.hint-from{outline:3px dashed var(--hint);outline-offset:3px}
+.tube.hint-to{outline:3px solid var(--hint);outline-offset:3px}
+.tube.bad{animation:shake .25s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.zzz{position:absolute;top:-20px;left:0;right:0;text-align:center;font-size:13px;font-weight:700;color:var(--good);letter-spacing:1px}
+.cat{position:relative;height:33px;flex:none;border-radius:14px 14px 7px 7px;display:grid;place-items:center;
+  border:1.5px solid rgba(0,0,0,.25);transition:transform .12s}
+.cat::before,.cat::after{content:"";position:absolute;top:-7px;width:0;height:0;
+  border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:9px solid var(--ear)}
+.cat::before{left:4px} .cat::after{right:4px}
+.cat span{font-size:11px;font-weight:700;line-height:1;padding:2px 3px;border-radius:4px;background:rgba(255,255,255,.88);color:#1f1b18;white-space:nowrap}
+.cat.up{transform:translateY(-14px)}
+.tube.done .cat span{opacity:.75}
+.bar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+button{font:inherit;font-size:14px;font-weight:700;padding:11px 6px;border-radius:10px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink);cursor:pointer;touch-action:manipulation}
+button:disabled{opacity:.4;cursor:default}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button .n{font-weight:400;color:var(--muted);font-size:12px}
+button.primary .n{color:#fff}
+.foot{font-size:11px;color:var(--muted);text-align:center}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><h1>냥소트</h1><span class="foot">규칙 확인용 프로토타입</span></header>
+  <div class="stats">
+    <div class="stat"><div class="k">레벨</div><div class="v" id="sLevel">-</div></div>
+    <div class="stat"><div class="k">이동 수</div><div class="v" id="sMoves">0</div></div>
+    <div class="stat"><div class="k">최소 이동 수</div><div class="v" id="sMin">-</div></div>
+  </div>
+  <div class="notice info" id="notice">같은 무늬 고양이를 한 상자에 4마리씩 모아 주세요.</div>
+  <div class="board" id="board"></div>
+  <div class="bar">
+    <button id="bUndo">되돌리기 <span class="n" id="nUndo">(0회)</span></button>
+    <button id="bAdd">상자 추가 <span class="n" id="nAdd">(1회 남음)</span></button>
+    <button id="bHint">힌트 <span class="n" id="nHint">(0회)</span></button>
+    <button id="bRestart">다시 시작</button>
+    <button id="bNext" class="primary" disabled>다음 레벨</button>
+  </div>
+  <div class="foot">주소 끝에 ?level=번호 를 붙이면 그 레벨로 바로 갑니다.</div>
+</div>
+
+<!-- ===== 게임 로직: 화면과 분리된 순수 함수 (Unity C#으로 옮길 부분) ===== -->
+<script id="nyang-logic">
+var NyangLogic = (function () {
+  'use strict';
+  // 상자 하나에 들어가는 고양이 수
+  var CAP = 4;
+  // 상자 표현: 문자열. 왼쪽이 바닥, 오른쪽 끝이 맨 위. 무늬 i는 문자 'a'+i.
+  // 판 표현: 상자 문자열의 배열.
+
+  // 시드 기반 결정적 난수 (mulberry32)
+  function makeRng(seed) {
+    var s = seed >>> 0;
+    return function () {
+      s = (s + 0x6D2B79F5) >>> 0;
+      var t = s;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  // 레벨 번호와 시도 번호를 섞어 시드를 만든다
+  function seedFor(level, attempt) {
+    var h = Math.imul(level ^ 0x9E3779B9, 0x85EBCA6B) ^ Math.imul(attempt + 1, 0xC2B2AE35);
+    h ^= h >>> 13; h = Math.imul(h, 0x27D4EB2F); h ^= h >>> 16;
+    return h >>> 0;
+  }
+
+  // 맨 위에서 같은 무늬가 몇 마리 연속인지
+  function topRun(t) {
+    var n = t.length;
+    if (n === 0) return 0;
+    var c = t.charCodeAt(n - 1), k = 1;
+    while (k < n && t.charCodeAt(n - 1 - k) === c) k++;
+    return k;
+  }
+  // 한 무늬로만 이루어졌는지 (빈 상자는 false)
+  function isUniform(t) { return t.length > 0 && topRun(t) === t.length; }
+  // 다 모인 상자: 한 무늬 4마리
+  function isDoneTube(t) { return t.length === CAP && isUniform(t); }
+
+  // i 상자에서 j 상자로 옮길 수 있는가
+  function canMove(tubes, i, j) {
+    if (i === j) return false;
+    var a = tubes[i], b = tubes[j];
+    if (a.length === 0 || b.length >= CAP) return false;
+    if (b.length > 0 && b.charCodeAt(b.length - 1) !== a.charCodeAt(a.length - 1)) return false;
+    return true;
+  }
+  // 옮긴 뒤의 새 판을 돌려준다 (원본은 바꾸지 않음). 들어갈 자리만큼 한꺼번에 옮긴다.
+  function applyMove(tubes, i, j) {
+    var a = tubes[i], b = tubes[j];
+    var k = Math.min(topRun(a), CAP - b.length);
+    var r = tubes.slice();
+    r[i] = a.slice(0, a.length - k);
+    r[j] = b + a.slice(a.length - k);
+    return r;
+  }
+  // 몇 마리가 옮겨지는지 (화면 표시용)
+  function moveCount(tubes, i, j) { return Math.min(topRun(tubes[i]), CAP - tubes[j].length); }
+
+  function isSolved(tubes) {
+    for (var i = 0; i < tubes.length; i++) {
+      if (tubes[i].length !== 0 && !isDoneTube(tubes[i])) return false;
+    }
+    return true;
+  }
+  // 쓸모 있는 이동: 한 무늬뿐인 상자를 통째로 빈 상자로 옮기는 것은 제외
+  function isUsefulMove(tubes, i, j) {
+    if (!canMove(tubes, i, j)) return false;
+    if (tubes[j].length === 0 && isUniform(tubes[i])) return false;
+    return true;
+  }
+  function usefulMoves(tubes) {
+    var out = [];
+    for (var i = 0; i < tubes.length; i++) {
+      var emptyTried = false;
+      for (var j = 0; j < tubes.length; j++) {
+        if (!isUsefulMove(tubes, i, j)) continue;
+        if (tubes[j].length === 0) { if (emptyTried) continue; emptyTried = true; } // 빈 상자는 하나만 시도
+        out.push([i, j]);
+      }
+    }
+    return out;
+  }
+  // 상자 순서를 정렬한 상태 키 (순서만 다른 판은 같은 상태)
+  function stateKey(tubes) { return tubes.slice().sort().join('|'); }
+
+  // 하한 추정값: (연속 덩어리 수 - 무늬 수) + (바닥에 한 번도 없는 무늬 수)
+  // 한 번 이동으로 많아야 1 줄어들므로 최소 이동 수를 넘지 않는다 (A* 최적 보장).
+  function heuristic(tubes) {
+    var seg = 0, bottomMask = 0, present = 0;
+    for (var i = 0; i < tubes.length; i++) {
+      var t = tubes[i];
+      if (t.length === 0) continue;
+      bottomMask |= 1 << (t.charCodeAt(0) - 97);
+      seg++;
+      present |= 1 << (t.charCodeAt(0) - 97);
+      for (var k = 1; k < t.length; k++) {
+        present |= 1 << (t.charCodeAt(k) - 97);
+        if (t.charCodeAt(k) !== t.charCodeAt(k - 1)) seg++;
+      }
+    }
+    var colors = 0, noBottom = 0;
+    for (var c = 0; c < 26; c++) {
+      if (present & (1 << c)) { colors++; if (!(bottomMask & (1 << c))) noBottom++; }
+    }
+    return seg - colors + noBottom;
+  }
+
+  // 우선순위 큐 (최소 힙)
+  function Heap() { this.p = []; this.v = []; }
+  Heap.prototype.push = function (pri, val) {
+    var p = this.p, v = this.v, i = p.length;
+    p.push(pri); v.push(val);
+    while (i > 0) {
+      var up = (i - 1) >> 1;
+      if (p[up] <= pri) break;
+      p[i] = p[up]; v[i] = v[up]; i = up;
+    }
+    p[i] = pri; v[i] = val;
+  };
+  Heap.prototype.pop = function () {
+    var p = this.p, v = this.v, top = v[0];
+    var lp = p.pop(), lv = v.pop(), n = p.length;
+    if (n > 0) {
+      var i = 0;
+      while (true) {
+        var l = 2 * i + 1, r = l + 1, m = i, mp = lp;
+        if (l < n && p[l] < mp) { m = l; mp = p[l]; }
+        if (r < n && p[r] < mp) { m = r; mp = p[r]; }
+        if (m === i) break;
+        p[i] = p[m]; v[i] = v[m]; i = m;
+      }
+      p[i] = lp; v[i] = lv;
+    }
+    return top;
+  };
+  Heap.prototype.size = function () { return this.p.length; };
+
+  // A* 솔버. 결과: {status:'solved'|'unsolvable'|'limit', moves:[[from,to],...], expanded}
+  // moves의 상자 번호는 입력 판의 상자 순서 그대로다.
+  function solve(start, maxExpand) {
+    maxExpand = maxExpand || 200000;
+    if (isSolved(start)) return { status: 'solved', moves: [], expanded: 0 };
+    var states = [start], parent = [-1], mv = [null], gs = [0];
+    var best = new Map();
+    best.set(stateKey(start), 0);
+    var heap = new Heap();
+    heap.push(heuristic(start) * 1024, 0);
+    var expanded = 0;
+    while (heap.size() > 0) {
+      var id = heap.pop();
+      var s = states[id], g = gs[id];
+      if (best.get(stateKey(s)) < g) continue; // 더 짧은 길로 이미 처리됨
+      if (isSolved(s)) {
+        // 휴리스틱이 일관적이므로 처음 꺼낸 목표가 최소 이동 수
+        var path = [], cur = id;
+        while (parent[cur] !== -1) { path.push(mv[cur]); cur = parent[cur]; }
+        path.reverse();
+        return { status: 'solved', moves: path, expanded: expanded };
+      }
+      if (expanded >= maxExpand) return { status: 'limit', moves: null, expanded: expanded };
+      expanded++;
+      var ms = usefulMoves(s);
+      for (var q = 0; q < ms.length; q++) {
+        var ns = applyMove(s, ms[q][0], ms[q][1]);
+        var key = stateKey(ns), ng = g + 1;
+        var old = best.get(key);
+        if (old !== undefined && old <= ng) continue;
+        best.set(key, ng);
+        var nid = states.length;
+        states.push(ns); parent.push(id); mv.push(ms[q]); gs.push(ng);
+        heap.push((ng + heuristic(ns)) * 1024 - ng, nid);
+      }
+    }
+    return { status: 'unsolvable', moves: null, expanded: expanded };
+  }
+
+  // 레벨 구간별 설정
+  function levelParams(level) {
+    function lerp(lo, hi, from, to) {
+      if (to <= from) return lo;
+      var t = Math.min(1, Math.max(0, (level - from) / (to - from)));
+      return lo + Math.floor(t * (hi - lo + 1 - 1e-9));
+    }
+    if (level <= 10) return { colors: lerp(3, 4, 1, 10), empties: 2 };
+    if (level <= 50) return { colors: lerp(4, 6, 11, 50), empties: 2 };
+    if (level <= 150) return { colors: lerp(7, 9, 51, 150), empties: 2 };
+    // 151 이상: 151~300에서 10→12종, 빈 상자 2개
+    return { colors: lerp(10, 12, 151, 300), empties: 2 };
+  }
+
+  // 튜토리얼 레벨 (손으로 만든 고정 배치). 생성기를 거치지 않는다.
+  var TUTORIALS = {
+    1: ['aaab', 'bbb', 'a', ''],              // 2종, 빈 상자 1, 최소 2수: 맨 위를 같은 무늬에 놓기
+    2: ['aaab', 'bbba', ''],                  // 2종, 빈 상자 1, 최소 3수: 빈 상자 활용
+    3: ['aabb', 'cc', 'ccaa', 'bb', '', '']   // 3종, 빈 상자 2, 최소 3수: 여러 마리 한꺼번에 옮기기
+  };
+  function tutorialLevel(level) {
+    var tubes = TUTORIALS[level].slice();
+    var colors = 0, empties = 0, seen = {};
+    for (var i = 0; i < tubes.length; i++) {
+      if (tubes[i].length === 0) empties++;
+      for (var k = 0; k < tubes[i].length; k++) if (!seen[tubes[i][k]]) { seen[tubes[i][k]] = true; colors++; }
+    }
+    var r = solve(tubes, 60000); // 최소 이동 수 표시용
+    return { level: level, colors: colors, empties: empties, tubes: tubes,
+             minMoves: r.moves.length, solution: r.moves, attempts: 0, expanded: r.expanded, tutorial: true };
+  }
+
+  // 무작위 배치 하나 (빈 상자 포함)
+  function randomBoard(colors, empties, rng) {
+    var balls = [];
+    for (var c = 0; c < colors; c++) for (var k = 0; k < CAP; k++) balls.push(String.fromCharCode(97 + c));
+    for (var i = balls.length - 1; i > 0; i--) {
+      var j = Math.floor(rng() * (i + 1));
+      var tmp = balls[i]; balls[i] = balls[j]; balls[j] = tmp;
+    }
+    var tubes = [];
+    for (var t = 0; t < colors; t++) tubes.push(balls.slice(t * CAP, t * CAP + CAP).join(''));
+    for (var e = 0; e < empties; e++) tubes.push('');
+    return tubes;
+  }
+
+  // 레벨 생성. 같은 레벨 번호는 항상 같은 결과.
+  // 시도마다 시드를 바꾸고, 솔버가 상한 안에 못 풀거나 처음부터 다 모인 상자가 있으면 버린다.
+  // 레벨 1~3은 튜토리얼 고정 배치를 돌려준다.
+  function generateLevel(level, opts) {
+    if (TUTORIALS[level]) return tutorialLevel(level);
+    opts = opts || {};
+    var maxExpand = opts.maxExpand || 60000;
+    var p = levelParams(level);
+    var totalExpanded = 0;
+    for (var attempt = 0; ; attempt++) {
+      var rng = makeRng(seedFor(level, attempt));
+      var tubes = randomBoard(p.colors, p.empties, rng);
+      var bad = false;
+      for (var i = 0; i < tubes.length; i++) if (isDoneTube(tubes[i])) bad = true;
+      if (bad) continue;
+      var r = solve(tubes, maxExpand);
+      totalExpanded += r.expanded;
+      if (r.status === 'solved') {
+        return { level: level, colors: p.colors, empties: p.empties, tubes: tubes,
+                 minMoves: r.moves.length, solution: r.moves, attempts: attempt + 1, expanded: totalExpanded };
+      }
+    }
+  }
+
+  return {
+    CAP: CAP, makeRng: makeRng, seedFor: seedFor, topRun: topRun, isUniform: isUniform, isDoneTube: isDoneTube,
+    canMove: canMove, applyMove: applyMove, moveCount: moveCount, isSolved: isSolved,
+    isUsefulMove: isUsefulMove, usefulMoves: usefulMoves, stateKey: stateKey, heuristic: heuristic,
+    solve: solve, levelParams: levelParams, randomBoard: randomBoard, generateLevel: generateLevel
+  };
+})();
+if (typeof module !== 'undefined' && module.exports) module.exports = NyangLogic;
+</script>
+
+<!-- ===== 화면 코드 ===== -->
+<script>
+(function () {
+  'use strict';
+  var L = NyangLogic;
+  // 무늬: 이름, 몸 색, 귀 색 (색과 글자를 함께 써서 색만으로 구분하지 않게 함)
+  var PATTERNS = [
+    { name: '치즈', bg: '#f3a23c', ear: '#d9822a' },
+    { name: '턱시도', bg: 'linear-gradient(180deg,#2b2b33 0 55%,#ffffff 55% 100%)', ear: '#2b2b33' },
+    { name: '고등어', bg: 'repeating-linear-gradient(90deg,#8d8a7a 0 6px,#5b584b 6px 9px)', ear: '#5b584b' },
+    { name: '삼색', bg: 'linear-gradient(90deg,#f3a23c 0 33%,#ffffff 33% 66%,#2b2b33 66%)', ear: '#f3a23c' },
+    { name: '흰냥', bg: '#fbfbf7', ear: '#e9d8d0' },
+    { name: '검냥', bg: '#1d1d22', ear: '#1d1d22' },
+    { name: '회색', bg: '#9ba3b0', ear: '#7d8592' },
+    { name: '샴', bg: 'radial-gradient(circle at 50% 60%,#5a4232 0 22%,#efe2c8 24%)', ear: '#5a4232' },
+    { name: '카오스', bg: 'repeating-linear-gradient(135deg,#3a2a22 0 7px,#c9772e 7px 12px)', ear: '#3a2a22' },
+    { name: '러블', bg: '#6f86a6', ear: '#56698a' },
+    { name: '갈냥', bg: '#8a5a36', ear: '#6c4428' },
+    { name: '크림', bg: '#f1d9a8', ear: '#dcbd82' }
+  ];
+  var KEY = 'nyangsort.proto.level';
+
+  function loadLevel() {
+    try {
+      var m = /[?&]level=(\d+)/.exec(location.search);
+      if (m) return Math.max(1, parseInt(m[1], 10));
+    } catch (e) {}
+    try {
+      var v = parseInt(localStorage.getItem(KEY), 10);
+      if (v > 0) return v;
+    } catch (e) {}
+    return 1;
+  }
+  function saveLevel(n) {
+    try { localStorage.setItem(KEY, String(n)); } catch (e) {}
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var S = { level: 1, gen: null, tubes: [], history: [], moves: 0, undoUsed: 0, hintUsed: 0,
+            addUsed: false, selected: -1, hint: null, cleared: false, msg: null, busy: false, checkToken: 0 };
+
+  function setMsg(kind, text) { S.msg = { kind: kind, text: text }; }
+
+  function startLevel(n) {
+    S.level = n; S.busy = true;
+    saveLevel(n);
+    $('sLevel').textContent = n; $('sMin').textContent = '…';
+    $('notice').className = 'notice info'; $('notice').textContent = '레벨 만드는 중…';
+    $('board').innerHTML = '';
+    setTimeout(function () {
+      var t0 = performance.now();
+      S.gen = L.generateLevel(n);
+      S.genMs = Math.round(performance.now() - t0);
+      S.busy = false;
+      resetBoard();
+    }, 20);
+  }
+  function resetBoard() {
+    S.tubes = S.gen.tubes.slice(); S.history = []; S.moves = 0; S.undoUsed = 0; S.hintUsed = 0;
+    S.addUsed = false; S.selected = -1; S.hint = null; S.cleared = false;
+    setMsg('info', '같은 무늬 고양이를 한 상자에 4마리씩 모아 주세요.');
+    render();
+  }
+
+  // 막다른 상태 확인: 쓸모 있는 이동이 없거나, 솔버가 풀 수 없다고 증명하면 안내
+  function checkStuck() {
+    if (S.cleared) return;
+    if (L.usefulMoves(S.tubes).length === 0) {
+      setMsg('warn', '막혔어요! 되돌리기나 상자 추가를 써 보세요.');
+      render(); return;
+    }
+    var token = ++S.checkToken;
+    setTimeout(function () {
+      if (token !== S.checkToken || S.cleared) return;
+      var r = L.solve(S.tubes, 20000);
+      if (r.status === 'unsolvable') {
+        setMsg('warn', '이 상태로는 풀 수 없어요. 되돌리기나 상자 추가를 써 보세요.');
+        render();
+      }
+    }, 30);
+  }
+
+  function onTap(i) {
+    if (S.busy || S.cleared) return;
+    var t = S.tubes;
+    if (S.selected < 0) {
+      if (t[i].length === 0) return;
+      S.selected = i; render(); return;
+    }
+    if (S.selected === i) { S.selected = -1; render(); return; }
+    if (L.canMove(t, S.selected, i)) {
+      S.history.push(t);
+      S.tubes = L.applyMove(t, S.selected, i);
+      S.moves++; S.selected = -1; S.hint = null;
+      if (L.isSolved(S.tubes)) {
+        S.cleared = true;
+        saveLevel(S.level + 1);
+        var diff = S.moves - S.gen.minMoves;
+        setMsg('good', '클리어! ' + S.moves + '수 (최소 ' + S.gen.minMoves + '수' + (diff <= 0 ? ', 최소 이동!' : ', +' + diff) + ')');
+      } else {
+        setMsg('info', '좋아요. 계속 모아 주세요.');
+        checkStuck();
+      }
+      render(); return;
+    }
+    // 놓을 수 없는 곳
+    var from = S.selected;
+    if (t[i].length > 0) { S.selected = i; } else { S.selected = -1; }
+    setMsg('warn', '거기엔 놓을 수 없어요. 빈 상자나 맨 위가 같은 무늬인 상자에만 놓을 수 있어요.');
+    render();
+    var el = $('board').children[i];
+    if (el && from >= 0) { el.classList.add('bad'); }
+  }
+
+  function undo() {
+    if (S.busy || S.history.length === 0) return;
+    S.tubes = S.history.pop(); S.moves--; S.undoUsed++;
+    S.selected = -1; S.hint = null; S.cleared = false; S.checkToken++;
+    $('bNext').disabled = true;
+    setMsg('info', '한 수 되돌렸어요.');
+    checkStuck(); render();
+  }
+  function addTube() {
+    if (S.busy || S.addUsed || S.cleared) return;
+    S.addUsed = true;
+    S.tubes = S.tubes.concat(['']);
+    // 되돌리기 기록에도 빈 상자를 붙여, 되돌려도 추가한 상자는 남게 한다
+    S.history = S.history.map(function (h) { return h.concat(['']); });
+    S.selected = -1; S.hint = null; S.checkToken++;
+    setMsg('info', '빈 상자를 하나 추가했어요.');
+    render();
+  }
+  function hint() {
+    if (S.busy || S.cleared) return;
+    var r = L.solve(S.tubes, 300000);
+    if (r.status === 'solved' && r.moves.length > 0) {
+      S.hintUsed++; S.hint = r.moves[0]; S.selected = -1;
+      setMsg('hint', '점선 상자에서 실선 상자로 옮겨 보세요. (여기서 남은 최소 ' + r.moves.length + '수)');
+    } else if (r.status === 'unsolvable') {
+      setMsg('warn', '이 상태로는 풀 수 없어요. 되돌리기나 상자 추가를 써 보세요.');
+    } else {
+      setMsg('warn', '힌트를 계산하지 못했어요. (탐색 상한 초과)');
+    }
+    render();
+  }
+
+  function render() {
+    if (!S.gen) return;
+    var t = S.tubes;
+    $('sLevel').textContent = S.level;
+    $('sMoves').textContent = S.moves;
+    $('sMin').textContent = S.gen.minMoves;
+    $('notice').className = 'notice ' + S.msg.kind;
+    $('notice').textContent = S.msg.text;
+    $('nUndo').textContent = '(' + S.undoUsed + '회)';
+    $('nAdd').textContent = S.addUsed ? '(사용함)' : '(1회 남음)';
+    $('nHint').textContent = '(' + S.hintUsed + '회)';
+    $('bUndo').disabled = S.history.length === 0;
+    $('bAdd').disabled = S.addUsed || S.cleared;
+    $('bHint').disabled = S.cleared;
+    $('bNext').disabled = !S.cleared;
+
+    var board = $('board');
+    var cols = t.length <= 6 ? t.length : Math.ceil(t.length / 2);
+    board.style.gridTemplateColumns = 'repeat(' + cols + ', minmax(0, 64px))';
+    board.style.justifyContent = 'center';
+    board.innerHTML = '';
+    for (var i = 0; i < t.length; i++) {
+      var tube = document.createElement('div');
+      tube.className = 'tube';
+      if (i === S.selected) tube.className += ' sel';
+      if (L.isDoneTube(t[i])) tube.className += ' done';
+      if (S.hint && S.hint[0] === i) tube.className += ' hint-from';
+      if (S.hint && S.hint[1] === i) tube.className += ' hint-to';
+      tube.setAttribute('role', 'button');
+      tube.setAttribute('aria-label', (i + 1) + '번 상자');
+      var run = i === S.selected ? L.topRun(t[i]) : 0;
+      for (var k = 0; k < t[i].length; k++) {
+        var p = PATTERNS[t[i].charCodeAt(k) - 97];
+        var cat = document.createElement('div');
+        cat.className = 'cat' + (k >= t[i].length - run ? ' up' : '');
+        cat.style.background = p.bg;
+        cat.style.setProperty('--ear', p.ear);
+        var sp = document.createElement('span');
+        sp.textContent = p.name;
+        cat.appendChild(sp);
+        tube.appendChild(cat);
+      }
+      if (L.isDoneTube(t[i])) {
+        var z = document.createElement('div');
+        z.className = 'zzz'; z.textContent = 'zzz';
+        tube.appendChild(z);
+      }
+      (function (idx) { tube.addEventListener('click', function () { onTap(idx); }); })(i);
+      board.appendChild(tube);
+    }
+  }
+
+  $('bUndo').addEventListener('click', undo);
+  $('bAdd').addEventListener('click', addTube);
+  $('bHint').addEventListener('click', hint);
+  $('bRestart').addEventListener('click', function () { if (!S.busy && S.gen) resetBoard(); });
+  $('bNext').addEventListener('click', function () { if (!S.busy && S.cleared) startLevel(S.level + 1); });
+
+  startLevel(loadLevel());
+})();
+</script>
+</body>
+</html>
