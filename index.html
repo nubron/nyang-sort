@@ -70,9 +70,16 @@ svg symbol{overflow:visible}
 .tgt-paw{position:absolute;z-index:3;top:calc(var(--w)*-.6);left:50%;width:calc(var(--w)*.36);height:calc(var(--w)*.36);margin-left:calc(var(--w)*-.18);
   fill:#E2683C;filter:drop-shadow(0 2px 0 #fff);animation:bob 1.2s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(-5px)}}
-.blanket{position:absolute;z-index:2;left:-6px;right:-6px;bottom:calc(var(--w)*1.42);height:calc(var(--w)*.28);border-radius:10px 10px 6px 6px;border:2px solid #9B4B3C;
-  background:repeating-linear-gradient(90deg,#E67C6B 0 8px,#F7E3C8 8px 16px);box-shadow:0 4px 0 rgba(0,0,0,.12)}
-.zzz{position:absolute;z-index:3;top:calc(var(--w)*-.56);right:calc(var(--w)*-.12);font-weight:700;font-size:calc(var(--w)*.22);line-height:1;color:#7B5A9E;
+/* 다 모인 상자: 뚜껑을 닫고, 손잡이 구멍으로 잠든 얼굴이 보인다 */
+.box.done{cursor:default}
+.lid{position:absolute;z-index:5;left:-2px;right:-2px;top:-2px;bottom:-2px;background:#DCA86A;border:2px solid #8E5E30;border-radius:3px 3px 7px 7px;transform-origin:50% 0}
+.lid::before{content:"";position:absolute;left:calc(var(--w)*-.09);right:calc(var(--w)*-.09);top:calc(var(--w)*-.16);height:calc(var(--w)*.2);border:2px solid #8E5E30;border-radius:4px;
+  background:linear-gradient(90deg,transparent calc(50% - 1px),#8E5E30 calc(50% - 1px) calc(50% + 1px),transparent calc(50% + 1px)),#E2B077}
+.lid::after{content:"";position:absolute;left:0;right:0;bottom:0;height:calc(var(--w)*.2);border-top:2px solid rgba(142,94,48,.45);background:#D9A466}
+.hole{position:absolute;left:8%;right:8%;top:calc(var(--w)*.3);height:calc(var(--w)*.5);border-radius:999px;overflow:hidden;background:#5E3B1F;border:2px solid #8E5E30;
+  box-shadow:inset 0 3px 0 rgba(40,20,5,.35)}
+.peek{position:absolute;left:50%;top:calc(var(--w)*-.13);width:calc(var(--w)*1.0);height:calc(var(--w)*.75);margin-left:calc(var(--w)*-.5);overflow:visible}
+.zzz{position:absolute;z-index:6;top:calc(var(--w)*-.56);right:calc(var(--w)*-.12);font-weight:700;font-size:calc(var(--w)*.22);line-height:1;color:#7B5A9E;
   animation:float 2.4s ease-in-out infinite}
 .zzz b{font-size:.78em;position:relative;top:-.45em;margin-left:1px}
 .zzz b+b{font-size:.62em;top:-.95em}
@@ -612,6 +619,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = NyangLogic
   function onTap(i) {
     if (S.busy || S.cleared || S.sheet) return;
     var t = S.tubes;
+    if (L.isDoneTube(t[i])) return; // 다 모인 상자는 닫혀 있어 누를 수 없다
     hideSay();
     if (S.selected < 0) {
       if (t[i].length === 0) return;
@@ -636,6 +644,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = NyangLogic
       }
       render();
       flyCats(i, k, start);
+      if (L.isDoneTube(S.tubes[i])) closeLid(i, k);
       return;
     }
     // 놓을 수 없는 곳: 상자가 흔들리고, 들린 고양이는 시무룩하게 돌아간다
@@ -858,7 +867,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = NyangLogic
       if (S.hint && S.hint[1] === i) cls += ' hto';
       var run = i === sel ? L.topRun(tube) : 0;
       var names = [];
-      var inner = FLAPS + '<i class="inside"></i>';
+      var inner = (done ? '' : FLAPS) + '<i class="inside"></i>';
       for (var k = 0; k < len; k++) {
         var top = k >= len - run, nudge = S.hint && S.hint[0] === i && k >= len - hintN;
         var sad = S.sad && S.sad.box === i && k >= len - S.sad.n;
@@ -871,10 +880,10 @@ if (typeof module !== 'undefined' && module.exports) module.exports = NyangLogic
         for (var g = 0; g < hintN; g++) inner += catSVG(src[src.length - 1], 'n', ' ghost', len + g);
       }
       inner += '<i class="front"></i>';
-      if (done) inner += '<i class="blanket"></i><span class="zzz" aria-hidden="true">z<b>z</b><b>z</b></span>';
+      if (done) inner += '<i class="lid"><i class="hole">' + catSVG(tube[0], 'z', '', 0).replace('class="cat', 'class="peek') + '</i></i><span class="zzz" aria-hidden="true">z<b>z</b><b>z</b></span>';
       if (tgt) inner += PAW;
-      var label = (i + 1) + '번 상자, ' + (len ? names.join(', ') + ' (아래부터)' : '비어 있음');
-      html += '<div class="' + cls + '" data-i="' + i + '" role="button" tabindex="0" aria-label="' + label + '" style="left:' + lay.boxes[i].x +
+      var label = (i + 1) + '번 상자, ' + (done ? names[0] + ' 4마리가 잠들었어요' : len ? names.join(', ') + ' (아래부터)' : '비어 있음');
+      html += '<div class="' + cls + '" data-i="' + i + '" role="button" tabindex="0"' + (done ? ' aria-disabled="true"' : '') + ' aria-label="' + label + '" style="left:' + lay.boxes[i].x +
         'px;top:' + lay.boxes[i].y + 'px' + (run ? ';--lift:' + liftPx(i) + 'px' : '') + '">' + inner + '</div>';
     }
     board.innerHTML = html;
@@ -905,6 +914,25 @@ if (typeof module !== 'undefined' && module.exports) module.exports = NyangLogic
         { transform: 'translate(0,0)' }
       ], { duration: 260 + j * 30, easing: 'ease-in-out' });
     }
+  }
+  // 마지막 고양이가 내려앉으면 날개를 접고 뚜껑을 덮는다
+  function closeLid(i, k) {
+    if (RM) return;
+    var el = boxEl(i); if (!el || !el.animate) return;
+    var lid = el.querySelector('.lid'); if (!lid) return;
+    var delay = 260 + (k - 1) * 30, dur = 360;
+    var tmp = document.createElement('div'); tmp.innerHTML = FLAPS;
+    var flaps = tmp.firstChild; flaps.style.transformOrigin = '50% 100%';
+    el.insertBefore(flaps, el.firstChild);
+    flaps.animate([{ transform: 'none' }, { transform: 'scaleY(-.2)', opacity: 0 }],
+      { duration: dur * 0.5, delay: delay, easing: 'ease-in', fill: 'forwards' }).onfinish = function () { if (flaps.parentNode) flaps.parentNode.removeChild(flaps); };
+    lid.animate([{ transform: 'perspective(' + S.lay.w * 4 + 'px) rotateX(-90deg)' }, { transform: 'none' }],
+      { duration: dur, delay: delay, easing: 'cubic-bezier(.3,.7,.4,1.15)', fill: 'backwards' });
+    // 날아온 고양이가 뚜껑 위로 비치지 않게 순서를 되돌린다
+    var cats = el.querySelectorAll('.inside ~ .cat');
+    setTimeout(function () { for (var j = 0; j < cats.length; j++) cats[j].style.zIndex = ''; }, delay);
+    var z = el.querySelector('.zzz');
+    if (z) z.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: delay + dur, fill: 'backwards' });
   }
   function bounceBack(i, n, lift) {
     if (RM) return;
